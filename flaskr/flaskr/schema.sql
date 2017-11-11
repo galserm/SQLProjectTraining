@@ -10,6 +10,8 @@ create table users (
        id integer primary key autoincrement,
        firstname text not null,
        lastname text not null,
+       mail_address text,
+       birthtdate timestamp,
        username text not null,
        password text not null
 );
