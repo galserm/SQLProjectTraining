@@ -9,6 +9,8 @@ flaskr.egg-info/dependency_links.txt
 flaskr.egg-info/requires.txt
 flaskr.egg-info/top_level.txt
 flaskr/static/style.css
+flaskr/templates/account.html
+flaskr/templates/account.html~
 flaskr/templates/home.html
 flaskr/templates/home.html~
 flaskr/templates/layout.html
