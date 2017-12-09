@@ -172,7 +172,7 @@ def follow_user():
         flash(e)
         
 @app.route('/like_post', methods=['POST'])
-def like_post:
+def like_post():
     db = get_postgres_db()
     user_id = get_user_id()
     try:
@@ -240,6 +240,7 @@ def user(id):
         userrows = db.fetchall()
         db.execute("""SELECT content,post_date,likes_number FROM posts WHERE user_id='%d'""" % id)
         postrows = db.fetchall()
+        
     except Exception as e:
         flash(e)
 

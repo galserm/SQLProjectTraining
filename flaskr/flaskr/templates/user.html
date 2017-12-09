@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Login</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  {% for row in rows %}
+  <dl id=''>
+    <dt/>First Name:
+    <dd/><input type=text name=firstname value={{ row[8] }}/>
+    <dt/>Last Name:
+    <dd/><input type=text name=lastname value={{ row[9] }}/>
+    <dt/>E-mail address:
+    <dd/><input type=email name=email value={{ row[3] }}/>
+    <dt/>Birth date:
+    <dd/><input type=date name=birthdate value={{ row[5] }}/> 
+    <dt/>Username:
+    <dd/><input type=text name=username value={{ row[1] }}/>>
+  </dl>
+  {% endfor %}
+  <li>
+    {% for post in posts %}
+    <div id={ row[0] } name='post_number'{{ row[5] }}>
+    </div>
+    {% endfor %}
+  </li>
+  {% endblock %}
+  

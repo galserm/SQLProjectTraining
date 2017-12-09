@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<h2>Post</h2>
+<h1>{{ index . "error" }}</h1>
+<form name="like_post" action="/like_post" method="post">
+  <div>
+    <h2>{{ .posts.UserName }}</h2>
+    {{ .posts.Content }}
+  </div>
+  <input type="text" name="post_id" value='{{ .posts.ID }}' style="display: none"/>
+  <input name="likeButton" type="submit" value="{{ .posts.LikesNumber }} Like"/>
+</form>
+<form name="addcomment" action="/add_comment" method="post">
+  <textarea name="content">
+  </textarea>
+  <input type="submit" value="comment"/>
+</form>

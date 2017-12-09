@@ -1,0 +1,79 @@
+
+package main
+
+import (
+    "net/http"
+    "database/sql"
+    "github.com/labstack/echo"
+    "github.com/lastback/echo/engine/standard"
+    "fmt"
+    "log"
+    _"github.com/lib/pq"
+)
+
+
+func main() {
+    var err error
+    db, err := sql.Open("postgres", "user=neotek password=kringstone dbname=projectdb sslmode=disable")
+    if err != nil {
+        log.Fatal(err);
+    }
+    if err = db.Ping(); err != nil {
+        panic(err)
+    } else {
+        fmt.Println("DB connected")
+    }
+    e := echo.New()
+
+    type User struct {
+        Id string `json:"id"`
+        FirstName string `json:"firstname"`
+        LastName string `json:"lastname"`
+        MailAdress string `json:"mailaddress"`
+        BirthDate string `json:"birthdate"`     
+        RegistrationDate string `json:"registrationdate"`
+        ProfilePicturePath string `json:"profilepicturepath"`
+        UserName string `json:"username"`
+        Password string `json:"password"`
+        Rights string `json:"rights"`
+    }
+    
+    type Users struct {
+        users []User `json:"users"`
+    }
+
+    e.POST("/inscription", func(c echo.Context) error {
+        user := new(User)
+        if err := c.Bind(user); err != nil {
+            return err
+        }
+        sqlStatement := "INSERT INTO users (username, password, mail_address, birthdate, rights, first_name, last_name) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+        res, err := db.Query(sqlStatement, user.UserName, user.Password, user.MailAdress, user.BirthDate, user.Rights, user.FirstName, user.LastName)
+        if err != nil {
+            fmt.Println(err)
+        } else {
+            fmt.Println(res)
+            return c.JSON(http.StatusCreated, user)
+        }
+        return c.String(http.StatusOK, "ok")
+    })
+
+    e.PUT("/user", func(context echo.Context) error {
+        user := new(User)
+        if err := context.Bind(user); err != nil {
+            fmt.Println(err)
+        }
+        sqlStatement := "UDATE users SET username=$1, password=$2, profil_picture_path=$3, first_name=$4, last_name=$5 WHERE id=$6"
+        res, err := db.Query(sqlStatement, user.UserName, user.Password, user.ProfilePicturePath, user.FirstName, user.LastName, user.Id)
+        if err != nil {
+            fmt.Println(err)
+            return context.JSON(http.StatusBadRequest, "Bad Request")
+        } else {
+            fmt.Println(res)
+            return context.JSON(http.StatusAccepted, user)
+        }
+        return context.JSON(http.StatusOK, user.Id)
+    })
+    e.Run(standard.New(":8081"))   
+
+}

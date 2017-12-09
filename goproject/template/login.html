@@ -1,0 +1,14 @@
+<li>
+  <a href="/inscription">inscription</a> 
+</li>
+<h2>Login</h2>
+<h1>{{ index . "error" }}</h1>
+<form action="/connect" method="post">
+  <dl>
+    <dt/>Username:
+    <dd/><input type="text" name="username"/>
+    <dt/>Password:
+    <dd/><input type="password" name="password"/>
+    <dd/><input type="submit" value="Login"/>
+  </dl>
+</form>
