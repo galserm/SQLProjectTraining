@@ -1,17 +1,17 @@
 CREATE TABLE Users (
        id serial PRIMARY KEY,
-       Username text UNIQUE,
-       Password text,
-       Mail_Adress text UNIQUE,
+       Username text UNIQUE NOT NULL,
+       Password text NOT NULL,
+       Mail_Adress text UNIQUE NOT NULL,
        Subscription_Date timestamptz,
-       Birthdate timestamptz,
-       Profile_Picture_Path text,
-       Rights smallint
+       Birthdate timestamptz NOT NULL,
+       Profile_Picture_Path text DEFAULT "",
+       Rights smallint DEFAULT 1
 );
 
 CREATE TABLE Posts (
        id serial PRIMARY KEY,
-       Content text,
+       Content text NOT NULL,
        User_id bigint references Users(id),
        Post_date timestamptz,
        Likes_number int,
@@ -32,7 +32,7 @@ CREATE TABLE Posts_Pictures(
 
 CREATE TABLE Comments (
        id serial PRIMARY KEY,
-       Content text,
+       Content text NOT NULL,
        User_id bigint references Users(id),
        Post_date timestamptz,
        Likes_number int,
