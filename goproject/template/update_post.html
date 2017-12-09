@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<h2>Update</h2>
+<h1> {{ index . "error" }} </h1>
+<div>
+  {{ .post.Content }}
+</div>
+<form name="update_post" action="/update_post" method="post">
+  <textarea name="content">
+  </textarea>
+  <input type="text" name="post_id" value='{{ .post.ID }}' style="display: none"/>
+  <input name="update_button" type="submit" value="Ok"/>
+</form>

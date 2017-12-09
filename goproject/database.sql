@@ -6,6 +6,8 @@ CREATE TABLE Users (
        Subscription_Date timestamptz DEFAULT CURRENT_DATE,
        Birthdate timestamptz NOT NULL,
        Profile_Picture_Path text DEFAULT NULL,
+       First_Name text NOT NULL,
+       Last_Name text NOT NULL,
        Rights smallint DEFAULT 1
 );
 

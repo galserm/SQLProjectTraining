@@ -17,11 +17,12 @@
     {{ .Content }}
   </div>
   <input type="text" name="comment_id" value='{{ .ID }}' style="display: none"/>
+  <input type="text" name="post_id" value='{{ $.posts.ID }}' style="display: none"/>  
   <input name="likeCommentButton" type="submit" value="{{ .LikesNumber }} Like"/>
 </form>
 {{ end }}
-<form name="addcomment" action="/add_comment" method="post">
-  <textarea name="content">
+<form name="add_comment" action="/add_comment" method="post">
+  <textarea name="comment_content">
   </textarea>
   <input type="text" name="post_id_comment" value='{{ .posts.ID }}' style="display: none"/>
   <input type="submit" value="comment"/>

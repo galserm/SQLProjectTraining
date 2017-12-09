@@ -14,6 +14,7 @@ import (
     "io"
     "crypto/md5"
     "encoding/hex"
+    "strings"
 )
 
 type Post struct {
@@ -52,7 +53,7 @@ func (t *TemplateRenderer) Render(writer io.Writer, name string, data interface 
 
 func main() {
     var err error
-    db, err := sql.Open("postgres", "user=neotek password=kringstone dbname=projectdb sslmode=disable")
+    db, err := sql.Open("postgres", "user=neotek password=kringstone dbname=db3 sslmode=disable")
     if err != nil {
         log.Fatal(err);
     }
@@ -68,7 +69,7 @@ func main() {
         templates: template.Must(template.ParseGlob("template/*.html")),
     }
     e.Renderer = renderer
-    e.GET("/", func(ctx echo.Context) error {
+    e.GET("/home", func(ctx echo.Context) error {
         sess, _ := session.Get("session", ctx)
         sess.Options = &sessions.Options {
             Path: "/",
@@ -77,7 +78,7 @@ func main() {
         }
         sess.Save(ctx.Request(), ctx.Response())
         if sess.Values["id"] != "" {
-            ctx.Redirect(http.StatusMovedPermanently, "/home")
+            return ctx.Redirect(http.StatusMovedPermanently, "/homes")
         }
         return ctx.Render(http.StatusOK, "login.html", map[string]interface{}{
             "name": "random",
@@ -86,6 +87,12 @@ func main() {
 
     e.POST("/inscription", func(c echo.Context) error {
         sqlStatement := "SELECT id FROM users WHERE username=$1"
+        pos := strings.Index(c.FormValue("email"), "@")
+        if strings.Contains(".", c.FormValue("email")[pos:]) == false {
+            return c.Render(http.StatusOK, "register.html", map[string]interface{}{
+                "error": "Invalid mail address",
+            })
+        }
         rows, _ := db.Query(sqlStatement, c.FormValue("username"))
         if (rows.Next()) {
             
@@ -115,6 +122,49 @@ func main() {
         return c.Render(http.StatusOK, "ok", nil)
     }).Name = "Error"
 
+    e.POST("/like_comment", func(ctx echo.Context) error {
+        sess, _ := session.Get("session", ctx)
+        sqlStatement := "SELECT id FROM comments_likes WHERE user_id=$1 AND comment_id=$2"
+        res, _ := db.Query(sqlStatement, sess.Values["id"], ctx.FormValue("comment_id"))
+        if res.Next() {
+            sqlStatement = "SELECT likes_number FROM comments WHERE id=$1"
+            res, _ = db.Query(sqlStatement, ctx.FormValue("comment_id"))
+            var (
+                likes_number int
+            )
+            for res.Next() {
+                res.Scan(&likes_number)
+            }
+            likes_number = likes_number - 1
+            sqlStatement = "UPDATE comments SET likes_number=$1 WHERE id=$2"
+            db.Query(sqlStatement, likes_number, ctx.FormValue("comment_id"))
+            sqlStatement = "DELETE FROM comments_likes WHERE user_id=$1 AND comment_id=$2"
+            db.Query(sqlStatement, sess.Values["id"], ctx.FormValue("comment_id"))
+            return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id"))            
+        }        
+        sqlStatement = "INSERT INTO comments_likes (user_id, comment_id) VALUES ($1, $2)"
+        _, errs := db.Query(sqlStatement,  sess.Values["id"], ctx.FormValue("comment_id"))
+        if errs != nil {
+            ctx.Render(http.StatusOK, "home.html", map[string]interface{}{
+                "error": "Oops, something went wrong, try again later",
+            })
+        } else {
+
+            sqlStatement = "SELECT likes_number FROM comments WHERE id=$1"
+            res, _ = db.Query(sqlStatement, ctx.FormValue("comment_id"))
+            var (
+                likes_number int
+            )
+            for res.Next() {
+                res.Scan(&likes_number)
+            }
+            likes_number = likes_number + 1
+            sqlStatement = "UPDATE comments SET likes_number=$1 WHERE id=$2"
+            db.Query(sqlStatement, likes_number, ctx.FormValue("comment_id"))
+        } 
+        return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id"))
+    })
+
     e.POST("/like_post", func(ctx echo.Context) error {
         sess, _ := session.Get("session", ctx)
         sqlStatement := "SELECT id FROM posts_likes WHERE user_id=$1 AND post_id=$2"
@@ -134,7 +184,7 @@ func main() {
             sqlStatement = "DELETE FROM posts_likes WHERE user_id=$1 AND post_id=$2"
             db.Query(sqlStatement, sess.Values["id"], ctx.FormValue("post_id"))
             if ctx.FormValue("origin") == "home" {
-                return ctx.Redirect(http.StatusMovedPermanently, "/home")
+                return ctx.Redirect(http.StatusMovedPermanently, "/homes")
             }
             return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id"))            
         }        
@@ -159,9 +209,8 @@ func main() {
             db.Query(sqlStatement, likes_number, ctx.FormValue("post_id"))
         } 
         if ctx.FormValue("origin") == "home" {
-            return ctx.Redirect(http.StatusMovedPermanently, "/home")
+            return ctx.Redirect(http.StatusMovedPermanently, "/homes")
         }
-        
         return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id"))
     })
 
@@ -171,10 +220,15 @@ func main() {
         })
     }).Name = "Incription"
 
-    e.POST("/logout", func(ctx echo.Context) error {
+    e.GET("/logout", func(ctx echo.Context) error {
         sess, _ := session.Get("session", ctx)
         sess.Values["id"] = ""
-        return ctx.Redirect(http.StatusMovedPermanently, "/")
+        //sess.Save(ctx.Request(), ctx.Response())
+        return ctx.Redirect(http.StatusMovedPermanently, "/login")
+    })
+
+    e.GET("/login", func(ctx echo.Context) error {
+        return ctx.Render(http.StatusOK, "login.html", map[string]interface{}{})
     })
 
     e.POST("/connect", func(ctx echo.Context) error {
@@ -190,24 +244,25 @@ func main() {
             sess, _ := session.Get("session", ctx)
             sess.Values["id"] = id
             sess.Save(ctx.Request(), ctx.Response())
-            ctx.Redirect(http.StatusMovedPermanently, "/home")
+            ctx.Redirect(http.StatusMovedPermanently, "/homes")
         }
         return ctx.Render(http.StatusOK, "login.html", map[string]interface{}{
             "error": "Invalid username/password",
         })
     }).Name = "Result"
     
-    e.POST("/addcomment", func(ctx echo.Context) error {
+    e.POST("/add_comment", func(ctx echo.Context) error {
         sess, _ := session.Get("session", ctx)
         sqlStatement := "INSERT INTO comments (content, user_id, likes_number, picture_path, post_id) VALUES ($1, $2, $3, $4, $5)"
-        _, err := db.Query(sqlStatement, ctx.FormValue("comment_content"), sess.Values["id"], "0", "", ctx.FormValue("post_id"))
+        
+        _, err := db.Query(sqlStatement, ctx.FormValue("comment_content"), sess.Values["id"], "0", "", ctx.FormValue("post_id_comment"))
         if err != nil {
-            return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id"))
+            return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id_comment"))
         } 
-        return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id"))    
+        return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id_comment"))    
     })
 
-    e.GET("/home", func(ctx echo.Context) error {
+    e.GET("/homes", func(ctx echo.Context) error {
         sess, _ := session.Get("session", ctx)
         if sess.Values["id"] == "" {
             ctx.Redirect(http.StatusForbidden, "/connect")            
@@ -244,8 +299,30 @@ func main() {
         }
         return ctx.Render(http.StatusOK, "post.html", map[string]interface{}{
             "posts": post,
-            "comment": result,
+            "comments": result,
         })
+    })
+
+    e.GET("/update_post/:id", func(ctx echo.Context) error {
+        sess, _ := session.Get("session", ctx)
+        if sess.Values["id"] == "" {
+            return ctx.Redirect(http.StatusMovedPermanently, "/")
+        }
+        sqlStatement := "SELECT id,content FROM posts WHERE id=$1"
+        res, _ := db.Query(sqlStatement, ctx.Param("id"))
+        post := Post{}
+        if res.Next() {
+            res.Scan(&post.ID, &post.Content)
+        }
+        return ctx.Render(http.StatusOK, "update_post.html", map[string]interface{}{
+            "post": post,
+        })
+    }) 
+    
+    e.POST("/update_post", func(ctx echo.Context) error {
+        sqlStatement := "UPDATE posts SET content=$1 WHERE id=$2"
+        db.Query(sqlStatement, ctx.FormValue("content"), ctx.FormValue("post_id"))
+        return ctx.Redirect(http.StatusMovedPermanently, "/post/" + ctx.FormValue("post_id"))
     })
 
     e.POST("/post", func(ctx echo.Context) error {
