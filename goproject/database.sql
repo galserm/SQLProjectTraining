@@ -5,7 +5,7 @@ CREATE TABLE Users (
        Mail_Adress text UNIQUE NOT NULL,
        Subscription_Date timestamptz DEFAULT CURRENT_DATE,
        Birthdate timestamptz NOT NULL,
-       Profile_Picture_Path text DEFAULT "",
+       Profile_Picture_Path text DEFAULT NULL,
        Rights smallint DEFAULT 1
 );
 
@@ -15,7 +15,7 @@ CREATE TABLE Posts (
        User_id bigint REFERENCES Users(id) ON DELETE CASCADE,
        Post_date timestamptz DEFAULT CURRENT_DATE,
        Likes_number int DEFAULT 0,
-       Picture_path text DEFAULT ""
+       Picture_path text DEFAULT NULL
 );
 
 CREATE TABLE Posts_Likes (
@@ -27,7 +27,7 @@ CREATE TABLE Posts_Likes (
 CREATE TABLE Posts_Pictures(
        id serial PRIMARY KEY,
        Post_id bigint REFERENCES Posts(id) ON DELETE CASCADE,
-       Picture_path text DEFAULT ""
+       Picture_path text DEFAULT NULL
 );
 
 CREATE TABLE Comments (
@@ -36,7 +36,7 @@ CREATE TABLE Comments (
        User_id bigint REFERENCES Users(id) ON DELETE CASCADE,
        Comment_date timestamptz DEFAULT CURRENT_DATE,
        Likes_number int DEFAULT 0,
-       Picture_path text DEFAULT "",
+       Picture_path text DEFAULT NULL,
        Post_id bigint REFERENCES Posts(id) ON DELETE CASCADE
 );
 
@@ -49,7 +49,7 @@ CREATE TABLE Comments_Likes (
 CREATE TABLE Comments_Pictures(
        id serial PRIMARY KEY,
        Comment_id bigint REFERENCES Comments(id) ON DELETE CASCADE,
-       Picture_path text DEFAULT ""
+       Picture_path text DEFAULT NULL
 );
 
 CREATE TABLE Followers(
