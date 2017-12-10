@@ -303,16 +303,48 @@ func main() {
         })
     })
 
+    e.GET("/user_update", func(ctx echo.Context) error {
+        return ctx.Render(http.StatusOK, "account.html", map[string]interface{}{})
+    })
+
+    e.POST("/user_update", func(ctx echo.Context) error {
+        sess, _ := session.Get("session", ctx)
+        if (ctx.FormValue("username") != "") {
+            sqlStatement := "UPDATE users SET username=$1 WHERE id=$2"
+            db.Query(sqlStatement, ctx.FormValue("username"), sess.Values["id"])
+        }
+        if (ctx.FormValue("password") != "") {
+            sqlStatement := "UPDATE users SET password=$1 WHERE id=$2"
+            db.Query(sqlStatement, ctx.FormValue("password"), sess.Values["id"])
+        }
+        if (ctx.FormValue("email") != "") {
+            sqlStatement := "UPDATE users SET mail_adress=$1 WHERE id=$2"
+            db.Query(sqlStatement, ctx.FormValue("email"), sess.Values["id"])
+        }
+        if (ctx.FormValue("firstname") != "") {
+            sqlStatement := "UPDATE users SET first_name=$1 WHERE id=$2"
+            db.Query(sqlStatement, ctx.FormValue("firstname"), sess.Values["id"])
+        }
+        if (ctx.FormValue("lastname") != "") {
+            sqlStatement := "UPDATE users SET last_name=$1 WHERE id=$2"
+            db.Query(sqlStatement, ctx.FormValue("lastname"), sess.Values["id"])
+        }
+        return ctx.Redirect(http.StatusMovedPermanently, "/")
+    })
+
     e.GET("/update_post/:id", func(ctx echo.Context) error {
         sess, _ := session.Get("session", ctx)
         if sess.Values["id"] == "" {
             return ctx.Redirect(http.StatusMovedPermanently, "/")
         }
-        sqlStatement := "SELECT id,content FROM posts WHERE id=$1"
+        sqlStatement := "SELECT id,content,user_id FROM posts WHERE id=$1"
         res, _ := db.Query(sqlStatement, ctx.Param("id"))
         post := Post{}
         if res.Next() {
-            res.Scan(&post.ID, &post.Content)
+            res.Scan(&post.ID, &post.Content, &post.UserID)
+        }
+        if post.UserID != sess.Values["id"] {
+            return ctx.Redirect(http.StatusMovedPermanently, "/")
         }
         return ctx.Render(http.StatusOK, "update_post.html", map[string]interface{}{
             "post": post,
