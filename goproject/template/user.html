@@ -1,18 +1,18 @@
-  <h2>Login</h2>
-  <dl id=''>
-    <dt/>First Name:
-    <dd/><input type=text name=firstname/>
-    <dt/>Last Name:
-    <dd/><input type=text name=lastname />
-    <dt/>E-mail address:
-    <dd/><input type=email name=email/>
-    <dt/>Birth date:
-    <dd/><input type=date name=birthdate/> 
-    <dt/>Username:
-    <dd/><input type=text name=username/>
-  </dl>
-  <li>
-    <div id="" name="">
-    </div>
-  </li>
+  <!DOCTYPE html>
+  <h2>{{ .user.UserName }}</h2>
+  <div>
+      <li>
+        First Name:
+        <span> {{ .user.FirstName }}</span><br/>
+        Last Name:
+        <span> {{ .user.LastName }} </span><br/>
+        Email:
+        <span> {{ .user.MailAddress }} </span><br/>
+      </li>
+      <form action="/follow" method="post">
+        <input type="text" name="id" value="{{ .user.ID }}" style="display: none"/>
+        <input type="text" name="method" value="{{ .action }}" style="display: none"/> 
+        <input type="submit" value="{{ .action }}"/>
+      </form>
+  </div>
   

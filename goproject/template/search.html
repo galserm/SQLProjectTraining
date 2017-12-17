@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<a href="/homes">Home</a>
+<form action="/search" method="post">
+    <input type="text" name="pattern"/><input type="submit" value="search"/>
+</form> 
+{{ range .results }}
+    <a href="/users/{{ .ID }}">{{ .UserName }}</a> 
+{{ end }}
