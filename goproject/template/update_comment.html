@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<h2>Update</h2>
+<h1> {{ index . "error" }} </h1>
+<div>
+  {{ .comment.Content }}
+</div>
+<form name="update_comment" action="/update_comment" method="post">
+  <textarea name="content">
+  </textarea>
+  <input type="text" name="comment_id" value='{{ .comment.ID }}' style="display: none"/>
+  <input name="update_button" type="submit" value="Ok"/>
+</form>
